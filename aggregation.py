@@ -3,6 +3,7 @@ import urllib.request, json, math
 import datetime as dt
 import numpy as np
 
+# This method form bins from the passed bounding box boundaries and the input bin side.
 def form_bins(x_min, x_max, y_min, y_max, bin_side):
     bins = []
     x_size = math.ceil((x_max - x_min)/bin_side)
@@ -16,9 +17,11 @@ def form_bins(x_min, x_max, y_min, y_max, bin_side):
         bins.append(temp)
     return bins
 
+# Fetches the list of tracks from the given url.
 with urllib.request.urlopen("https://envirocar.org/api/stable/tracks?bbox=7.1,51.1,15.4,65.7&during=2011-11-05T12:00:00Z,2014-11-08T12:00:00Z") as url:
     data = json.loads(url.read().decode())
 
+# Fetches data for individual tracks in the given bounding box and the time frame.
 prefix = "https://envirocar.org/api/stable/tracks/"
 individual_tracks = []
 for tracks in data['tracks']:
@@ -26,9 +29,12 @@ for tracks in data['tracks']:
     with urllib.request.urlopen(url) as repo:
         individual_tracks.append(json.loads(repo.read().decode()))
 
+# Defining a same value of bin size for latitude and longitude, in lat-lng scale. This forms a rectangular bin.
 bin_size = 0.5
 bins = form_bins(7.1,51.1,15.4,65.7, bin_size)
 
+# This loop puts the speed (demonstrative) data at each timestamp into the respective bin object.
+# For simplicity, data has not been aggregated at nearby time intervals.
 for tracks in individual_tracks:
     bin_number_y = -1
     bin_number_x = -1
