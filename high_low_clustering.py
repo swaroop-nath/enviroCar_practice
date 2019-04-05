@@ -1,6 +1,12 @@
 import math
 import numpy as np
 import datetime as dt
+import scipy 
+
+def find_sum(x_vec, order = 1):
+    sum = 0
+    for x in x_vec:
+        sum = sum + x**order
 
 def inverse_distance(i_latlng, j_latlng):
     den = math.sqrt((j_latlng[0]-i_latlng[0])**2 + (j_latlng[1] - i_latlng[1])**2)
@@ -40,10 +46,16 @@ def calculate_expected_g(weight_matrix):
     expected_g = sum_num/den
     return expected_g
 
-def calculate_z_score(expected_g, expected_g_square, weight_matrix):
+def calculate_z_score(general_g, expected_g, weight_matrix, phen_value):
     W = 0
     S_1 = 0
     S_2 = 0
+    n = len(weight_matrix)
+    sum_x = find_sum(phen_value)
+    sum_x_square = find_sum(phen_value, 2)
+    sum_x_cube = find_sum(phen_value, 3)
+    sum_x_quad = find_sum(phen_value, 4)
+
     for i in range(0, len(weight_matrix)):
         temp = 0
         for j in range(0, len(weight_matrix)):
@@ -58,14 +70,30 @@ def calculate_z_score(expected_g, expected_g_square, weight_matrix):
     D_1 = -((n**2 - n)*S_1 - 2*n*S_2 + 6*(W**2))
     D_0 = (n**2 - 3*n + 3)*S_1 - n*S_2 + 3*(W**2)
 
+    C = (sum_x**2 - sum_x_square)*n*(n-1)*(n-2)*(n-3)
+    B = D_3*sum_x*sum_x_cube + D_4*(sum_x**4)
+    A = D_0*(sum_x_square**2) + D_1*(sum_x_quad) + D_2*(sum_x**2)*sum_x_square
+
+    expected_g_square = (A + B)/C
+    variance_g = expected_g_square - (expected_g**2)
+
+    z_score = (general_g - expected_g)/(math.sqrt(variance_g))
+    return z_score
             
-def find_clusters_global(date, bins):
+def find_clusters_global(date, bins, significance_level):
     bins_concerned = []
     for row in range(0, len(bins)):
         for column in range(0, len(bins[row])):
             if bins[row][column].get_feature(date) != None:
                 bins_concerned.append(bins[row][column])
+
+    phen_value = []
+    for bins in bins_concerned:
+        phen_value.append(bins.get_feature(date))
+
     weight_matrix = calculate_weight_matrix(bins_concerned)
     general_g = calculate_general_g_statistic(bins_concerned, weight_matrix, date)
     expected_g = calculate_expected_g(weight_matrix)
+    z_score =  calculate_z_score(general_g, expected_g, weight_matrix, phen_value)   
+    p_value = scipy.stats.norm.sf(abs(z_score))
     return [general_g, expected_g, z_score, p_value]
