@@ -18,7 +18,7 @@ def form_bins(x_min, x_max, y_min, y_max, bin_side):
     return bins
 
 # Fetches the list of tracks from the given url.
-with urllib.request.urlopen("https://envirocar.org/api/stable/tracks?bbox=7.1,51.1,15.4,65.7&during=2011-11-05T12:00:00Z,2014-11-08T12:00:00Z") as url:
+with urllib.request.urlopen("https://envirocar.org/api/stable/tracks?bboc=7.1,51.1,15.4,65.7&during=2011-11-05T12:00:00Z,2014-11-08T12:00:00Z") as url:
     data = json.loads(url.read().decode())
 
 # Fetches data for individual tracks in the given bounding box and the time frame.
@@ -36,8 +36,6 @@ bins = form_bins(7.1,51.1,15.4,65.7, bin_size)
 # This loop puts the speed (demonstrative) data at each timestamp into the respective bin object.
 # For simplicity, data has not been aggregated at nearby time intervals.
 for tracks in individual_tracks:
-    bin_number_y = -1
-    bin_number_x = -1
     for points in tracks.get('features'):
         coordinates = points.get('geometry').get('coordinates')
         bin_number_x = math.floor((coordinates[0] - 7.1)/bin_size)
