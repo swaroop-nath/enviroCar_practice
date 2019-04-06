@@ -1,7 +1,7 @@
 import math
 import numpy as np
 import datetime as dt
-import scipy 
+import scipy.stats 
 
 def find_sum(x_vec, order = 1):
     sum = 0
